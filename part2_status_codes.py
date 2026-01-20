@@ -43,16 +43,18 @@ response = requests.get(url)
 if response.status_code == 200:
     data = response.json()
 else:
+    data=None
     print("Resource not found!")
 
+if data:
 
-# Access specific fields
-print(f"Full Name: {data['name']}")
-print(f"Username: {data['username']}")
-print(f"Email: {data['email']}")
-print(f"City: {data['address']['city']}")
-print(f"Company: {data['company']['name']}")
-print(f"Phone: {data['phone']}")
+    # Access specific fields
+    print(f"Full Name: {data['name']}")
+    print(f"Username: {data['username']}")
+    print(f"Email: {data['email']}")
+    print(f"City: {data['address']['city']}")
+    print(f"Company: {data['company']['name']}")
+    print(f"Phone: {data['phone']}")
 
 
 # Example 4: Working with a list of items
@@ -81,15 +83,48 @@ status_codes = {
 for code, meaning in status_codes.items():
     print(f"  {code}: {meaning}")
 
-print("\n--- Exercise 3 ---")
+# ---------------------------
+# Exercise 1: Fetch user with ID 5 and print their phone number
+# ---------------------------
+print("\n=== Exercise 1 ===")
+url_user5 = "https://jsonplaceholder.typicode.com/users/5"
+response = requests.get(url_user5)
+
+if response.status_code == 200:
+    user_data = response.json()
+    print(f"Phone number of user 5: {user_data['phone']}")
+else:
+    print("User not found!")
+
+
+# ---------------------------
+# Exercise 2: Check if a resource exists before printing data
+# ---------------------------
+print("\n=== Exercise 2 ===")
+url_resource = "https://jsonplaceholder.typicode.com/posts/10"
+response = requests.get(url_resource)
+
+if response.status_code == 200:
+    resource_data = response.json()
+    print("Resource data:")
+    print(resource_data)
+else:
+    print("Resource not found!")
+
+
+# ---------------------------
+# Exercise 3: Count how many comments are on post ID 1
+# ---------------------------
+print("\n=== Exercise 3 ===")
 url_comments = "https://jsonplaceholder.typicode.com/posts/1/comments"
 response = requests.get(url_comments)
 
 if response.status_code == 200:
     comments = response.json()
-    print("Total comments on post 1:", len(comments))
+    print(f"Total comments on post 1: {len(comments)}")
 else:
     print("Could not fetch comments")
+
 
 # --- EXERCISES ---
 #

@@ -25,40 +25,6 @@ from requests.exceptions import (
     HTTPError,
     RequestException
 )
-
-
-"""def safe_api_request(url, timeout=5, retries=3):
-        #Make an API request with retry logic and proper error handling.
-
-    for attempt in range(1, retries + 1):
-        try:
-            print(f"Attempt {attempt} -> {url}")
-            response = requests.get(url, timeout=timeout)
-
-            # Raise exception for bad status codes (4xx, 5xx)
-            response.raise_for_status()
-
-            return {"success": True, "data": response.json()}
-
-        except (ConnectionError, Timeout) as e:
-            if attempt == retries:
-                return {
-                    "success": False,
-                    "error": f"Failed after {retries} attempts: {str(e)}"
-                }
-            time.sleep(2)  # wait before retrying
-
-        except HTTPError as e:
-            return {
-                "success": False,
-                "error": f"HTTP Error: {e.response.status_code}"
-            }
-
-        except RequestException as e:
-            return {
-                "success": False,
-                "error": f"Request failed: {str(e)}"
-            }"""
 def safe_api_request(url, timeout=5, retries=3):
     """Make an API request with retry logic and logging."""
 
@@ -101,68 +67,39 @@ def safe_api_request(url, timeout=5, retries=3):
             logging.error(f"Request exception for {url}: {e}")
             return {
                 "success": False,
-                "error": "Unexpected request error"
+                "error": f"Request failed: {e}"
             }
 
 
 def demo_error_handling():
-    """Demonstrate different error scenarios."""
     print("=== Error Handling Demo ===\n")
 
-    # Test 1: Successful request
-    print("--- Test 1: Valid URL ---")
-    result = safe_api_request("https://jsonplaceholder.typicode.com/posts/1")
-    if result["success"]:
-        print(f"Success! Got post: {result['data']['title'][:30]}...")
-    else:
-        print(f"Failed: {result['error']}")
+    tests = [
+        ("Valid URL", "https://jsonplaceholder.typicode.com/posts/1"),
+        ("Non-existent Resource (404)", "https://jsonplaceholder.typicode.com/posts/99999"),
+        ("Invalid Domain", "https://this-domain-does-not-exist-12345.com/api"),
+        ("Timeout Simulation", "https://httpstat.us/200?sleep=5000")
+    ]
 
-    # Test 2: 404 Error
-    print("\n--- Test 2: Non-existent Resource (404) ---")
-    result = safe_api_request("https://jsonplaceholder.typicode.com/posts/99999")
-    if result["success"]:
-        print(f"Success! Data: {result['data']}")
-    else:
-        print(f"Failed: {result['error']}")
-
-    # Test 3: Invalid domain
-    print("\n--- Test 3: Invalid Domain ---")
-    result = safe_api_request("https://this-domain-does-not-exist-12345.com/api")
-    if result["success"]:
-        print("Success!")
-    else:
-        print(f"Failed: {result['error']}")
-
-    # Test 4: Timeout simulation
-    print("\n--- Test 4: Timeout Simulation ---")
-    result = safe_api_request(
-        "https://httpstat.us/200?sleep=5000",
-        timeout=1
-    )
-    if result["success"]:
-        print("Success!")
-    else:
-        print(f"Failed: {result['error']}")
+    for desc, url in tests:
+        print(f"\n--- Test: {desc} ---")
+        timeout = 1 if "Timeout" in desc else 5
+        result = safe_api_request(url, timeout=timeout)
+        if result["success"]:
+            print(f"Success! Data preview: {str(result['data'])[:60]}...")
+        else:
+            print(f"Failed: {result['error']}")
 
 def validate_crypto_response(data):
-    """Validate crypto API response structure."""
-
+    """Check if crypto response contains required fields."""
     try:
-        if "quotes" not in data:
-            return False, "Missing 'quotes' field"
-
-        if "USD" not in data["quotes"]:
-            return False, "Missing 'USD' quote data"
-
-        usd_data = data["quotes"]["USD"]
-
-        required_fields = ["price", "percent_change_24h"]
-        for field in required_fields:
-            if field not in usd_data:
-                return False, f"Missing '{field}' in USD data"
-
+        if "quotes" not in data or "USD" not in data["quotes"]:
+            return False, "Missing quotes/USD data"
+        usd = data["quotes"]["USD"]
+        for field in ["price", "percent_change_24h"]:
+            if field not in usd:
+                return False, f"Missing field '{field}' in USD data"
         return True, None
-
     except TypeError:
         return False, "Invalid response format"
 

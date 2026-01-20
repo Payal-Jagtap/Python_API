@@ -19,33 +19,32 @@ def get_user_info():
     #user_id = input("Enter user ID (1-10): ")
     user_id = input("Enter user ID (1-10): ")
 
-    if not user_id.isdigit():
+    if not user_id.isdigit() or not (1<=int(user_id)<=10):
         print("User ID must be a number!")
         return
 
 
     url = f"https://jsonplaceholder.typicode.com/users/{user_id}"
-    response = requests.get(url)
-
-    if response.status_code == 200:
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
         data = response.json()
         print(f"\n--- User #{user_id} Info ---")
         print(f"Name: {data['name']}")
         print(f"Email: {data['email']}")
         print(f"Phone: {data['phone']}")
         print(f"Website: {data['website']}")
-    else:
+    except requests.RequestException:
         print(f"\nUser with ID {user_id} not found!")
-
 
 def search_posts():
     """Search posts by user ID."""
     print("\n=== Post Search ===\n")
 
     #user_id = input("Enter user ID to see their posts (1-10): ")
-    user_id = input("Enter user ID to see their posts (1-10): ")
+    user_id = input("Enter user ID to see their posts (1-10): ").strip()
 
-    if not user_id.isdigit():
+    if not user_id.isdigit() or not (1<=int(user_id) <=10):
         print("User ID must be numeric!")
         return
 
@@ -53,15 +52,18 @@ def search_posts():
     url = "https://jsonplaceholder.typicode.com/posts"
     params = {"userId": user_id}
 
-    response = requests.get(url, params=params)
-    posts = response.json()
-
-    if posts:
-        print(f"\n--- Posts by User #{user_id} ---")
-        for i, post in enumerate(posts, 1):
-            print(f"{i}. {post['title']}")
-    else:
-        print("No posts found for this user.")
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        posts = response.json()
+        if posts:
+            print(f"\n--- Posts by User #{user_id} ---")
+            for i, post in enumerate(posts, 1):
+                print(f"{i}. {post['title']}")
+        else:
+            print("No posts found for this user.")
+    except requests.RequestException:
+        print("Error fetching posts.")
 
 
 def get_crypto_price():
@@ -72,9 +74,9 @@ def get_crypto_price():
     coin_id = input("Enter coin ID (e.g., btc-bitcoin): ").lower().strip()
 
     url = f"https://api.coinpaprika.com/v1/tickers/{coin_id}"
-    response = requests.get(url)
-
-    if response.status_code == 200:
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
         data = response.json()
         price_usd = data['quotes']['USD']['price']
         change_24h = data['quotes']['USD']['percent_change_24h']
@@ -82,45 +84,45 @@ def get_crypto_price():
         print(f"\n--- {data['name']} ({data['symbol']}) ---")
         print(f"Price: ${price_usd:,.2f}")
         print(f"24h Change: {change_24h:+.2f}%")
-    else:
-        print(f"\nCoin '{coin_id}' not found!")
-        print("Try: btc-bitcoin, eth-ethereum, doge-dogecoin")
-#def get_weather():
-    #"""Fetch current weather for a city."""
-    #print("\n=== Weather Checker ===\n")
+    except requests.RequestException:
+        print(f"\nCoin '{coin_id}' not found! Try: btc-bitcoin, eth-ethereum, doge-dogecoin")
 
-    #city_coords = {
-        #"delhi": (28.61, 77.23),
-        #"mumbai": (19.07, 72.87),
-        #"london": (51.50, -0.12),
-        #"new york": (40.71, -74.00)
-    #}
+def get_weather():
+    """Fetch current weather for a city."""
+    print("\n=== Weather Checker ===\n")
 
-    #city = input("Enter city name: ").lower().strip()
+    city_coords = {
+        "delhi": (28.61, 77.23),
+        "mumbai": (19.07, 72.87),
+        "london": (51.50, -0.12),
+        "new york": (40.71, -74.00)
+    }
 
-    #if city not in city_coords:
-        #print("City not available!")
-        #return
+    city = input("Enter city name: ").lower().strip()
 
-    #lat, lon = city_coords[city]
+    if city not in city_coords:
+        print("City not available!")
+        return
 
-    #url = "https://api.open-meteo.com/v1/forecast"
-    #params = {
-        #"latitude": lat,
-        #"longitude": lon,
-        #"current_weather": "true"
-    #}
+    lat, lon = city_coords[city]
 
-    #response = requests.get(url, params=params)
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current_weather": "true"
+    }
 
-    #if response.status_code == 200:
-        #data = response.json()
-        #weather = data["current_weather"]
-        #print(f"\nCity: {city.title()}")
-        #print(f"Temperature: {weather['temperature']}°C")
-        #print(f"Wind Speed: {weather['windspeed']} km/h")
-    #else:
-        #print("Could not fetch weather data")
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        weather = data["current_weather"]
+        print(f"\nCity: {city.title()}")
+        print(f"Temperature: {weather['temperature']}°C")
+        print(f"Wind Speed: {weather['windspeed']} km/h")
+    except requests.RequestException:
+        print("Could not fetch weather data.")
 
 def search_todos():
     """Search todos by completion status."""
@@ -135,15 +137,15 @@ def search_todos():
     url = "https://jsonplaceholder.typicode.com/todos"
     params = {"completed": status}
 
-    response = requests.get(url, params=params)
-
-    if response.status_code == 200:
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
         todos = response.json()
         print(f"\nTotal todos found: {len(todos)}")
         for todo in todos[:5]:
             print("-", todo["title"])
-    else:
-        print("Could not fetch todos")
+    except requests.RequestException:
+        print("Could not fetch todos.")
 
 def main():
     """Main menu for the program."""
@@ -157,10 +159,11 @@ def main():
         print("2. Search posts by user")
         print("3. Check crypto price")
         print("4. Search todos")
-        print("5. Exit")
+        print("5. Check weather")
+        print("6. Exit")
 
 
-        choice = input("\nEnter choice (1-5): ")
+        choice = input("\nEnter choice (1-6): ").strip()
 
         if choice == "1":
             get_user_info()
@@ -171,6 +174,8 @@ def main():
         elif choice == "4":
             search_todos()
         elif choice == "5":
+            get_weather()
+        elif choice =="6":
             print("\nGoodbye!")
             break
 
